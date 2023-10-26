@@ -1,4 +1,4 @@
-import { CourseSection, Section, CoursePreferences, CourseTimeRange, SessionWithMetadata } from "../types";
+import { CourseSection, Section, CoursePreferences, CourseTimeRange, SessionWithMetadata, CourseOrder } from "../types";
 
 export function overlapBetweenSessionTime(lhs: CourseTimeRange, rhs: CourseTimeRange): boolean {
     if (lhs.dayOfWeek !== rhs.dayOfWeek) {
@@ -59,12 +59,14 @@ export async function computeOptimalSessionScheduling(
 
 
 export async function callAlgorithmAndUpdate(
-    sections: Section[], numRequired: number, prefs: CoursePreferences,
+    sections: Section[], order: CourseOrder, prefs: CoursePreferences,
     update: (s: Section[]) => void,
 ) {
+    const optionalIndex = order.indexOf("Optional");
+
     const withMetadata = sections.map(s => ({
         session: s.section,
-        weight: 1,
+        weight: order.indexOf(s.course) < optionalIndex ? 10 : 1,
         credit: s.course.creditHours ?? 0,
         courseId: s.course.id,
     }));
@@ -78,10 +80,6 @@ export async function callAlgorithmAndUpdate(
         for (let sec of withMetadata) {
             sec.weight += (24 - sec.session.timeRanges[0].startHour) / 3
         }
-    }
-
-    for (let i = 0; i < numRequired; i++) {
-        withMetadata[i].weight += 20;
     }
 
     // const scheduleWithMetadata = withMetadata;

@@ -1,3 +1,14 @@
+export function moveArrayItem<T>(array: T[], idx: number, to: number) {
+    if (idx >= array.length) throw new Error("Move Array Item: From index out of range");
+    if (to >= array.length) throw new Error("Move Array Item: To index out of range");
+    if (idx === to) return;
+
+    const elem = array[idx];
+    array.splice(idx, 1);
+    array.splice(to, 0, elem);
+}
+
+
 export function createElem(tag: string, props?: any, ...children: (HTMLElement | string)[]): HTMLElement {
     const elem = document.createElement(tag);
 
@@ -29,6 +40,9 @@ let props: Props | null = null;
 const fillerElem = document.createElement("div");
 fillerElem.classList.add("filler-item");
 fillerElem.innerText = "-";
+
+const dragContainer = document.createElement("div");
+dragContainer.classList.add("dragging-item");
 
 
 function rootElem(): HTMLElement {
@@ -125,14 +139,16 @@ function onDragStart(child: HTMLElement, func: OnDragFunc, y: number, cy: number
 
     // Setup the filler element
     fillerElem.style.height = childRect.height + "px";
+    fillerElem.style.width = childRect.width + "px";
     child.parentElement!.replaceChild(fillerElem, child);
 
     // Set up the dragging element
-    props.element.classList.add("dragging-item");
-    props.element.style.left = childRect.left + "px";
-    props.element.style.width = childRect.width*0.9 + "px";
-    child.style.top = (y + props.yOffset + props.height/2) + "px";
-    rootElem().appendChild(child);
+    dragContainer.replaceChildren(props.element)
+    dragContainer.style.left = childRect.left + "px";
+    dragContainer.style.width = childRect.width + "px";
+    dragContainer.style.top = (y + props.yOffset + props.height/2) + "px";
+
+    rootElem().appendChild(dragContainer);
 }
 
 
@@ -164,7 +180,7 @@ function onDragMove(topTarget: HTMLElement, event: { pageY: number, clientY: num
     const cy = event.clientY + props.yOffset + props.height/2;
 
     // No matter what, make sure the dragging element is at the right height
-    props.element.style.top = y + "px";
+    dragContainer.style.top = y + "px";
 
     // Find the child of the container that the cursor is over, or if
     // it is outside of the container, exit
@@ -216,14 +232,11 @@ document.addEventListener("touchend", onDragEnd);
 function onDragEnd() {
     if (!props) return;
 
-    // props.element.style.left = undefined;
-    props.element.style.width = null;
-
     rootElem().style.userSelect = "";
     rootElem().style.touchAction = "";
 
-    rootElem().removeChild(props.element);
-    props.element.classList.remove("dragging-item");
+    rootElem().removeChild(dragContainer);
+    dragContainer.removeChild(props.element);
 
     const after = props.nowIdx;
     props.nowIdx = props.beforeIdx;

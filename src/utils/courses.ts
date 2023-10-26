@@ -1,5 +1,6 @@
-const COURSES =
-[
+import { Course } from "../types";
+
+const COURSES: Course[] = [
   {
     "id" : "PHIL 310",
     "description" : "We study formal languages and methods for assessing correctness of arguments, including a brief look at modal and many-valued logics.  We also consider their relations to natural languages and reflect on the techniques required to prove theorems about languages.  A previous logic course is helpful, though the course is self-contained. Cross-list: PHIL 505.",
@@ -72696,3 +72697,4 @@ const COURSES =
 ];
 
 export default COURSES;
+

@@ -1,0 +1,26 @@
+/* The floating element being dragged around */
+.dragging-item {
+    cursor: grab;
+
+    pointer-events: none;
+
+    position: absolute;
+    /* width: 100%; */
+    transform: translateY(-50%);
+}
+
+/* The item in place of the floating element in the list */
+.filler-item {
+    color: transparent;
+    background-color: lightgray;
+    cursor: grab;
+    width: 90%;
+}
+
+.grabber-container {
+    touch-action: none;
+    cursor: grab;
+    margin: 6px 8px 0px 0px;
+    font-size: 25px;
+    color: gray;
+}

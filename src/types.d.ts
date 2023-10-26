@@ -1,10 +1,4 @@
-export type CoursePreferences = Partial<{
-    time: "early" | "late" | "middle",
-    freeFridays: boolean,
-    minCreditHours: number,
-    maxCreditHours: number,
-}>;
-
+// Courses/Sections
 
 export type CourseTimeRange = {
     dayOfWeek: number,
@@ -49,6 +43,38 @@ export type Section = {
 };
 
 
+// UX
+
+export type SectionSession = { start: string, end: string, days: number[] };
+
+export type CourseOrder = (Course | "Optional")[];
+
+export type SavedSchedule = {
+    sections: string[],
+    time: string,
+    name?: string,
+};
+
+export type CurrentSectionData = {
+    sections: Section[],
+    order: CourseOrder,
+    add: (...s: Section[]) => void,
+    remove: (...s: Section[]) => void,
+    reorder: (start: number, end: number) => void,
+}
+
+
+// Preferences
+
+export type CoursePreferences = Partial<{
+    time: "early" | "late" | "middle",
+    freeFridays: boolean,
+    minCreditHours: number,
+    maxCreditHours: number,
+}>;
+
+
+// Algorithm
 
 export type SessionWithMetadata = {
     session: CourseSection;
