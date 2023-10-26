@@ -1,6 +1,6 @@
-import { Box, Button, Divider, Paper, Stack, TextField, Typography } from "@mui/material";
+import { Box, Button, Paper, Stack, Typography } from "@mui/material";
 import { useState } from "react";
-import { CurrentSectionData, Section, SavedSchedule } from "../../types";
+import { CurrentSectionData, Section } from "../../types";
 import { sectionChronologicalOrder } from "../../utils/allCourses";
 import { addOrRemoveSectionButton } from "../courses/CourseHeaderLayout";
 import SectionTimeLayout from "../courses/SectionTimeLayout";
@@ -15,6 +15,12 @@ export default function ScheduleView(ps: {
 }) {
     // The current search term
     const [search, setSearch] = useState(null as null | string);
+
+    if (ps.results.length === 0) return (
+        <Typography variant="h2" pt={4} fontSize="1.7em" textAlign="center">
+            No schedule selected
+        </Typography>
+    );
 
     const resultsHook: CurrentSectionData = {
         sections: ps.results,

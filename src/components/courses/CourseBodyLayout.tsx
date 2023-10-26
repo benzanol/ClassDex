@@ -6,6 +6,7 @@ import clockImage from "../../assets/icons/clock.jpg";
 import personImage from "../../assets/icons/person.jpg";
 import worldImage from "../../assets/icons/world.jpg";
 import aImage from "../../assets/icons/a.jpg";
+import CourseEvaluation from "./CourseEvaluation";
 
 
 function gridItem(image: string, alt: string, text: string) {
@@ -47,6 +48,7 @@ export default function CourseBodyLayout(ps: {
                 ))
             }
             <Typography my={2}>{ ps.course.description }</Typography>
+            <CourseEvaluation course={ps.course} />
         </>
     );
 };

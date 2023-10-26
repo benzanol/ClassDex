@@ -55,32 +55,30 @@ export default function App() {
                          setSectionResults,
                      )}
         />,
-        (sectionResults === null) ? <div>No schedule selected</div> : (
-            <ScheduleView results={[ ...sectionResults ]} setResults={setSectionResults}
-                          save={(name: string) => {
-                              const match = name.match(/(.*)<([0-9]+)>/);
-                              const nameBase = match ? match[1] : name;
-                              let number = match ? +match[2] : 0;
-                              while (savedSchedules.find(saved => saved.name === name)) {
-                                  number += 1;
-                                  name = `${nameBase}<${number}>`;
-                              }
-                              setSavedSchedules([
-                                  ...savedSchedules,
-                                  {
-                                      name,
-                                      time: new Date().toLocaleString(),
-                                      sections: sectionResults.map(s => s.section.crn),
-                                  },
-                              ]);
-                          }}
-            />
-        ),
+        <ScheduleView results={[ ...sectionResults ]} setResults={setSectionResults}
+                      save={(name: string) => {
+                          const match = name.match(/(.*)<([0-9]+)>/);
+                          const nameBase = match ? match[1] : name;
+                          let number = match ? +match[2] : 0;
+                          while (savedSchedules.find(saved => saved.name === name)) {
+                              number += 1;
+                              name = `${nameBase}<${number}>`;
+                          }
+                          setSavedSchedules([
+                              ...savedSchedules,
+                              {
+                                  name,
+                                  time: new Date().toLocaleString(),
+                                  sections: sectionResults.map(s => s.section.crn),
+                              },
+                          ]);
+                      }}
+        />,
         <SavedView saved={savedSchedules} setSaved={setSavedSchedules}
                    setResults={setSectionResults}
         />,
     ].map((layout, idx) => (
-        <Box height="100%" hidden={appState !== idx}>{ layout }</Box>
+        <Box pb={2} hidden={appState !== idx}>{ layout }</Box>
     ));
 
 

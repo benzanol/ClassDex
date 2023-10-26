@@ -1,5 +1,5 @@
 import { Course, Section } from "../types";
-import courses from "./courses";
+import courses from "./courseData";
 
 
 export function sectionChronologicalOrder(sections: Section[]): Section[] {

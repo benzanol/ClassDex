@@ -11,6 +11,12 @@ export default function SavedView(ps: {
     setSaved: (s: SavedSchedule[]) => void,
     setResults: (r: Section[]) => void,
 }) {
+    if (ps.saved.length === 0) return (
+        <Typography variant="h2" pt={4} fontSize="1.7em" textAlign="center">
+            No saved schedules
+        </Typography>
+    );
+
     useEffect(() => {
         for (let div of Array.from(document.getElementsByClassName("saved-grabber-container"))) {
             const grabber = DragAndDrop.createGrabber((start, end) => {
@@ -60,11 +66,7 @@ export default function SavedView(ps: {
                 </ListItemButton>
             </ListItem>
         </Paper>
-    ))
+    ));
 
-    return listItems.length ? <List className="drag-container">{ listItems }</List> : (
-        <Typography variant="h2" pt={4} fontSize="1.7em" textAlign="center">
-            You have no saved schedules
-        </Typography>
-    );
+    return <List className="drag-container">{ listItems }</List>;
 }

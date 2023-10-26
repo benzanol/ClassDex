@@ -32,14 +32,13 @@ export default function BrowseView(ps: {
 }) {
     const [filter, setFilter] = useState({});
     const [popoverAnchor, setPopoverAnchor] = useState(null as null | JSX.Element);
-    console.log(filter);
 
     const filteredCourses = ALL.courses.filter(course => (
         matchesSearch(ps.search, course) && satisfiesFilter(course, filter)
     ));
 
     return (
-        <div>
+        <>
             <Stack direction="row" alignItems="center" spacing={2} py={2}>
                 <IconButton aria-label="comment" onClick={ps.goBack}>
                     <ArrowBackIcon />
@@ -68,6 +67,6 @@ export default function BrowseView(ps: {
                     )
                 }
             </Stack>
-        </div>
+        </>
     );
 }
