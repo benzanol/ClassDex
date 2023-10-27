@@ -1,5 +1,5 @@
 import { Box, Grid, Stack, Typography } from "@mui/material";
-import { ReactElement } from "react";
+import { ReactElement, Fragment } from "react";
 import { Section } from "../../types";
 import { timeString } from "../../utils/timeString";
 
@@ -79,19 +79,21 @@ export default function Calendar(ps: { sections: Section[] }) {
 
     const dayLayouts = days.map((day, dayIdx) => {
         let prevMinute = 0;
-        const events = day.flatMap(({ start, end, text }, rowIdx) => {
+        const events = day.map(({ start, end, text }) => {
             const vertSpace = (start-minMinute) - prevMinute;
             prevMinute = end-minMinute;
-            return [
-                <Box height={ percentHeight(vertSpace, totalMinutes) } />,
-                <Box zIndex={1} width="95%" height={percentHeight(end-start, totalMinutes)}>
-                    { text }
-                </Box>
-            ];
+            return (
+                <Fragment key={Math.random()}>
+                    <Box height={ percentHeight(vertSpace, totalMinutes) } />,
+                    <Box zIndex={1} width="95%" height={percentHeight(end-start, totalMinutes)}>
+                        { text }
+                    </Box>
+                </Fragment>
+            );
         });
         return (
             // If dayIdx==0, set xs=0, meaning shrink as thin as possible
-            <Grid item xs={dayIdx ? 3 : 0} p={0}>
+            <Grid key={dayIdx} item xs={dayIdx ? 3 : 0} p={0} pt={2}>
                 <Stack key={dayIdx} alignItems="center" height="100%" borderRight={`1px solid ${GRID_COLOR}`}>
                     <Typography variant="h2" fontSize="1.2em">
                         { ["\u{2064}","Mon","Tue","Wed","Thu","Fri","Sat","Sun"][dayIdx] }

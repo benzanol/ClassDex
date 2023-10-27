@@ -1,14 +1,18 @@
-import { CourseSection, Section, CoursePreferences, CourseTimeRange, SessionWithMetadata, CourseOrder } from "../types";
+import solver from "javascript-lp-solver";
+import { CourseOrder, CoursePreferences, CourseTimeRange, Section } from "../types";
 
-export function overlapBetweenSessionTime(lhs: CourseTimeRange, rhs: CourseTimeRange): boolean {
-    if (lhs.dayOfWeek !== rhs.dayOfWeek) {
+
+// Calculating Overlap
+
+function doTimesOverlap(t1: CourseTimeRange, t2: CourseTimeRange): boolean {
+    if (t1.dayOfWeek !== t2.dayOfWeek) {
         return false;
     }
 
-    let lhsStartTimestamp = lhs.startHour * 60 + lhs.startMinute;
-    let lhsEndTimestamp = lhs.endHour * 60 + lhs.endMinute;
-    let rhsStartTimestamp = rhs.startHour * 60 + rhs.startMinute;
-    let rhsEndTimestamp = rhs.endHour * 60 + rhs.endMinute;
+    let lhsStartTimestamp = t1.startHour * 60 + t1.startMinute;
+    let lhsEndTimestamp = t1.endHour * 60 + t1.endMinute;
+    let rhsStartTimestamp = t2.startHour * 60 + t2.startMinute;
+    let rhsEndTimestamp = t2.endHour * 60 + t2.endMinute;
 
     if (rhsEndTimestamp < lhsStartTimestamp || lhsEndTimestamp < rhsStartTimestamp) {
         return false
@@ -16,13 +20,13 @@ export function overlapBetweenSessionTime(lhs: CourseTimeRange, rhs: CourseTimeR
     return true;
 }
 
-function overlapBetweenSessionTimes(lhs: CourseSection, rhs: CourseSection): boolean {
-    if (lhs.timeRanges === undefined || rhs.timeRanges === undefined) {
+function doSectionsOverlap(s1: Section, s2: Section): boolean {
+    if (s1.section.timeRanges == undefined || s2.section.timeRanges == undefined) {
         return false
     }
-    for (let i = 0; i < lhs.timeRanges.length; i += 1) {
-        for (let j = i; j < rhs.timeRanges.length; j += 1) {
-            if (overlapBetweenSessionTime(lhs.timeRanges[i], rhs.timeRanges[j])) {
+    for (let i = 0; i < s1.section.timeRanges.length; i += 1) {
+        for (let j = i; j < s2.section.timeRanges.length; j += 1) {
+            if (doTimesOverlap(s1.section.timeRanges[i], s2.section.timeRanges[j])) {
                 return true;
             }
         }
@@ -31,68 +35,118 @@ function overlapBetweenSessionTimes(lhs: CourseSection, rhs: CourseSection): boo
     return false;
 }
 
-export async function computeOptimalSessionScheduling(
-    for_sessions: SessionWithMetadata[], minimum_credits: number, maximum_credits: number,
-): Promise<SessionWithMetadata[]> {
-    return for_sessions.reduce((existing, s1) => (
-        existing.find(s2 => overlapBetweenSessionTimes(s1.session, s2.session))
-            ? existing : [...existing, s1]
-    ), [] as SessionWithMetadata[])
-    // try {
-    //     const response = await fetch('http://localhost:3001/computeOptimalScheduling', {
-    //         method: 'POST',
-    //         headers: {
-    //             'Content-Type': 'application/json',
-    //         },
-    //         body: JSON.stringify({ for_sessions, minimum_credits, maximum_credits }),
-    //     });
+function sectionTimeEquivClasses(sections: Section[]): Section[][] {
+    const equivs: Section[][] = [];
+    function alreadyOverlapped(s1: Section, s2: Section): boolean {
+        return Boolean(equivs.find(equiv => equiv.includes(s1) && equiv.includes(s2)));
+    }
 
-    //     if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+    for (let s1 of sections) {
+        for (let s2 of sections) {
+            if (s1 === s2 || !doSectionsOverlap(s1, s2) || alreadyOverlapped(s1, s2)) continue;
 
-    //     const result = await response.json();
-    //     return result;
-    // } catch (error) {
-    //     console.error('Error during the computation:', error);
-    //     throw error;
-    // }
+            const equivClass = [s1, s2];
+            equivs.push(equivClass);
+
+            // Add an equivalence class of all sections that overlap with both s1 and s2
+            for (let s3 of sections) {
+                if (s3 !== s1 && s3 !== s2 && doSectionsOverlap(s1, s3) && doSectionsOverlap(s2, s3)) {
+                    equivClass.push(s3);
+                }
+            }
+        }
+    }
+
+    return equivs;
 }
 
 
-export async function callAlgorithmAndUpdate(
+// Calculating times
+
+function calculateOptimalTimes(
+    sections: [Section, number][],
+    minCredits: number, maxCredits: number,
+): Section[] | null {
+    const overlapEquivs = sectionTimeEquivClasses(sections.map(([sec]) => sec));
+
+    // Each section is a variable, which can be either 0 or 1 in the output
+    const sectionVariables = sections.map(([section, happy]) => [
+        section.section.crn,
+        {
+            happy,
+            credits: section.course.creditHours,
+            [section.course.id]: 1,
+            ...Object.fromEntries(overlapEquivs.map((equiv, idx) => (
+                [`overlap${idx}`, equiv.includes(section) ? 1 : 0]
+            ))),
+            ...Object.fromEntries(sections.map(([s], i) => [`section${i}`, s === section ? 1 : 0]))
+        },
+    ]);
+
+    // No overlapping sections
+    const overlapConstraints = overlapEquivs.map((_, i) => [`overlap${i}`, { max: 1 }]);
+
+    // Only 0 or 1 of each section
+    const sectionConstraints = sections.map((_, i) => [`section${i}`, { min: 0, max: 1 }]);
+
+    // No more than 1 section of a course
+    const courseIds = [...new Set(sections.map(([section]) => section.course.id))]
+    const courseConstraints = courseIds.map(cid => [cid, { max: 1 }]);
+
+    const model = {
+        optimize: "happy",
+        opType: "max",
+        constraints: Object.fromEntries([
+            ...overlapConstraints,
+            ...sectionConstraints,
+            ...courseConstraints,
+            ["credits", { min: minCredits, max: maxCredits }],
+        ]),
+        variables: Object.fromEntries(sectionVariables),
+        // Make sure each course variable is an integer
+        ints: Object.fromEntries(sections.map(([section]) => [section.section.crn, 1]))
+    };
+
+    // console.log(model);
+
+    const result = solver.Solve(model);
+    if (!result.feasible) return null;
+
+    return sections.map(([section]) => section)
+        .filter(section => section.section.crn in result);
+}
+
+export function calculateSchedule(
     sections: Section[], order: CourseOrder, prefs: CoursePreferences,
-    update: (s: Section[]) => void,
-) {
+): Section[] {
     const optionalIndex = order.indexOf("Optional");
 
-    const withMetadata = sections.map(s => ({
-        session: s.section,
-        weight: order.indexOf(s.course) < optionalIndex ? 10 : 1,
-        credit: s.course.creditHours ?? 0,
-        courseId: s.course.id,
-    }));
+    const sectionPrefs = sections.map(s => (
+        [s, order.indexOf(s.course) < optionalIndex ? 10 : 1] as [Section, number]
+    ));
 
     if (prefs.time === "late") {
-        for (let sec of withMetadata) {
-            sec.weight += sec.session.timeRanges[0].startHour / 3
+        for (let sec of sectionPrefs) {
+            sec[1] += sec[0].section.timeRanges[0].startHour / 3
         }
     }
     if (prefs.time === "early") {
-        for (let sec of withMetadata) {
-            sec.weight += (24 - sec.session.timeRanges[0].startHour) / 3
+        for (let sec of sectionPrefs) {
+            sec[1] += (24 - sec[0].section.timeRanges[0].startHour) / 3
         }
     }
 
-    // const scheduleWithMetadata = withMetadata;
-    const scheduleWithMetadata = await computeOptimalSessionScheduling(
-        withMetadata,
-        prefs.minCreditHours ?? 1,
-        prefs.maxCreditHours ?? 18,
+    console.log("Min =", prefs.minCredits, "Max =", prefs.maxCredits)
+    console.log(
+        "Your preferences: \n",
+        sectionPrefs.map(([sec, pref]) => (
+            sec.course.id + " " + sec.section.crn + ": " + pref
+        )).join("\n")
     );
 
-    // Find the correct courses based on the crns returned from the optimization function
-    const schedule = scheduleWithMetadata.map(metadata => (
-        sections.find(sec => sec.section.crn === metadata.session.crn)
-    ));
-
-    update(schedule);
+    return calculateOptimalTimes(
+        sectionPrefs,
+        prefs.minCredits ?? 0,
+        prefs.maxCredits ?? 18,
+    ) ?? [];
 }

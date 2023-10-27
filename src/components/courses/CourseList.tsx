@@ -52,8 +52,9 @@ export default function CourseList(ps: {
     });
 
 
-    const courseLayouts = courses.map((course, idx) => {
+    const courseLayouts = courses.map((course) => {
         if (isValidElement(course)) return course;
+        course = course as Course;
 
         // Disable gutters makes the accordian stay still when you're expanding it
         // Unmount on exit makes it so that the content is not loaded until you expand the accordian
@@ -64,7 +65,7 @@ export default function CourseList(ps: {
                 expanded={expanded === course.id}
                 onChange={handleExpand(course.id)}
                 TransitionProps={{ unmountOnExit: true }}
-                width="100%"
+                sx={{ width: "100%" }}
             >
                 <AccordionSummary expandIcon={ <ExpandMore /> }>
                     <Stack direction="row" alignItems="center" width="100%">

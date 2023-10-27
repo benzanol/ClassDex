@@ -30,7 +30,7 @@ export default function SavedView(ps: {
     });
 
     const listItems = ps.saved.map(schedule => (
-        <Paper elevation={3} sx={{ mr: 2, my: 2, p: 0, width: "100%", border: "1px solid gray" }}>
+        <Paper key={schedule.time} elevation={3} sx={{ mr: 2, my: 2, p: 0, width: "100%", border: "1px solid gray" }}>
             <ListItem sx={{ p: 0 }} secondaryAction={
                           <IconButton onClick={() => {
                                           // TODO: Add stop propogation

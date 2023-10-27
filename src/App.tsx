@@ -11,7 +11,7 @@ import { getAll } from './utils/allCourses';
 import { getLocalStorage, saveCourseOrder, saveSavedSchedules, saveSections } from './utils/localStorage';
 import CurrentView from './components/views/CurrentView';
 import { sectionsHook } from './utils/sectionsHook';
-import { callAlgorithmAndUpdate } from "./utils/algorithm";
+import { calculateSchedule } from "./utils/algorithm";
 
 import SchoolIcon from '@mui/icons-material/School';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
@@ -45,50 +45,52 @@ export default function App() {
     useEffect(() => saveCourseOrder(courseOrder), [courseOrder]);
 
 
+    function saveCurrentSchedule(name: string) {
+        const match = name.match(/(.*)<([0-9]+)>/);
+        const nameBase = match ? match[1] : name;
+        let number = match ? +match[2] : 0;
+        while (savedSchedules.find(saved => saved.name === name)) {
+            number += 1;
+            name = `${nameBase}<${number}>`;
+        }
+        setSavedSchedules([
+            ...savedSchedules,
+            {
+                name,
+                time: new Date().toLocaleString(),
+                sections: sectionResults.map(s => s.section.crn),
+            },
+        ]);
+    }
+
+
     // This will allow child modules to access and modify the section data
     const hook = sectionsHook(mySections, setMySections, courseOrder, setCourseOrder);
 
     const leftColumn = [
         <CurrentView mySections={hook}
-                     generate={() => callAlgorithmAndUpdate(
-                         mySections, courseOrder, {},
-                         setSectionResults,
-                     )}
+                     generate={(prefs) => setSectionResults(calculateSchedule(
+                         mySections, courseOrder, prefs,
+                     ))}
         />,
         <ScheduleView results={[ ...sectionResults ]} setResults={setSectionResults}
-                      save={(name: string) => {
-                          const match = name.match(/(.*)<([0-9]+)>/);
-                          const nameBase = match ? match[1] : name;
-                          let number = match ? +match[2] : 0;
-                          while (savedSchedules.find(saved => saved.name === name)) {
-                              number += 1;
-                              name = `${nameBase}<${number}>`;
-                          }
-                          setSavedSchedules([
-                              ...savedSchedules,
-                              {
-                                  name,
-                                  time: new Date().toLocaleString(),
-                                  sections: sectionResults.map(s => s.section.crn),
-                              },
-                          ]);
-                      }}
+                      save={saveCurrentSchedule}
         />,
         <SavedView saved={savedSchedules} setSaved={setSavedSchedules}
                    setResults={setSectionResults}
         />,
     ].map((layout, idx) => (
-        <Box pb={2} hidden={appState !== idx}>{ layout }</Box>
+        <Box key={idx} pb={2} hidden={appState !== idx}>{ layout }</Box>
     ));
 
 
 
     return (
-        <Resizer.Container style={{ height: "100vh" }}>
+        <Resizer.Container style={{ height: "100%", width: "100%" }}>
 
             <Resizer.Section style={{ height: "100%" }} minSize={600} defaultSize={800}>
                 <Stack justifyContent="space-between" height="100%">
-                    <Box sx={{ p: 2, height: "100%", overflowY: "scroll" }}>{ leftColumn }</Box>
+                    <Box sx={{ pb: 2, px: 2, height: "100%", overflowY: "scroll" }}>{ leftColumn }</Box>
                     <Tabs variant="fullWidth" value={appState} onChange={(_, val) => setAppState(val)}>
                         <Tab icon={<SchoolIcon />} label="Desired Courses" />
                         <Tab icon={<CalendarMonthIcon />} label="View Schedule" />

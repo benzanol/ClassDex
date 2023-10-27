@@ -14,6 +14,7 @@ export type CourseSection = {
     timeRanges: CourseTimeRange[],
     location: string,
     instructor: string,
+    baseLocation?: string,
     instructorRating?: number,
     instructorReviews?: number,
 };
@@ -61,16 +62,16 @@ export type CurrentSectionData = {
     add: (...s: Section[]) => void,
     remove: (...s: Section[]) => void,
     reorder: (start: number, end: number) => void,
-}
+};
 
 
 // Preferences
 
 export type CoursePreferences = Partial<{
     time: "early" | "late" | "middle",
-    freeFridays: boolean,
-    minCreditHours: number,
-    maxCreditHours: number,
+    minCredits: number,
+    maxCredits: number,
+    noGaps?: boolean,
 }>;
 
 

@@ -46,7 +46,7 @@ export default function BrowseView(ps: {
 
                 <SearchBar initial={ps.search} setSearch={ps.setSearch} />
 
-                <Button variant="contained" size="large"
+                <Button variant="outlined" size="large"
                         onClick={(e) => setPopoverAnchor(e.target as any)}
                         sx={{ minWidth: "fit-content", height: "50px", p: 2 }}
                 >

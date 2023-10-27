@@ -11,9 +11,8 @@ export function sectionChronologicalOrder(sections: Section[]): Section[] {
         .map(([section, _time]) => section);
 }
 
-
 export function getAll() {
-    let allCourses = (courses as Course[]);
+    let allCourses = (courses as Course[]).filter(c => c.sections?.length);
 
     // Remove sections that don't have a time
     for (let c of allCourses) {
@@ -28,6 +27,10 @@ export function getAll() {
     for (let course of allCourses) {
         course.fullSections = [];
         course.sections.forEach(section => {
+            section.timeRanges.forEach(range => {
+                range.dayOfWeek = (range.dayOfWeek - 2 + 7) % 7;
+            });
+
             const fullSection = { course, section };
             course.fullSections.push(fullSection);
             allSections.push(fullSection);

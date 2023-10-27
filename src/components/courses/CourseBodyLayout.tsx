@@ -1,4 +1,4 @@
-import { Grid, Stack, Table, TableCell, TableRow, Typography } from "@mui/material";
+import { Stack, Table, TableBody, TableCell, TableRow, Typography } from "@mui/material";
 import { Course, CurrentSectionData } from "../../types";
 import CourseSectionLayout from "./CourseSectionLayout";
 
@@ -15,7 +15,7 @@ function gridItem(image: string, alt: string, text: string) {
             <Stack direction="row" alignItems="center">
                 <img alt={alt} src={image} style={{ width: "20px" }} />
                 <Typography sx={{ ml: 2, fontSize: "1.3em" }}>{ text }</Typography>
-            </Stack>
+        </Stack>
         </TableCell>
     );
 }
@@ -28,17 +28,19 @@ export default function CourseBodyLayout(ps: {
     return (
         <>
             <Table sx={{ mt: 0, mb: 2, pt: 0 }}>
-                <TableRow>
-                    { gridItem(clockImage, "Clock", (ps.course.creditHours ?? "?") + " Credit Hours") }
-                    { gridItem(personImage, "Person", ps.course.courseType) }
-                </TableRow>
-                <TableRow>
-                    { gridItem(
-                        worldImage, "Distribution",
-                        ps.course.satisfiesDistribution ?? "No Distribution Credit"
-                    ) }
-                    { gridItem(aImage, "A", ps.course.gradeMode) }
-                </TableRow>
+                <TableBody>
+                    <TableRow>
+                        { gridItem(clockImage, "Clock", (ps.course.creditHours ?? "?") + " Credit Hours") }
+                        { gridItem(personImage, "Person", ps.course.courseType) }
+                    </TableRow>
+                    <TableRow>
+                        { gridItem(
+                            worldImage, "Distribution",
+                            ps.course.satisfiesDistribution ?? "No Distribution Credit"
+                        ) }
+                        { gridItem(aImage, "A", ps.course.gradeMode) }
+                    </TableRow>
+                </TableBody>
             </Table>
             {
                 ps.course.fullSections.map((section) => (

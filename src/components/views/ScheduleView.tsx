@@ -43,7 +43,7 @@ export default function ScheduleView(ps: {
     );
 
     const courseLayouts = sectionChronologicalOrder(ps.results).map(section => (
-        <Paper sx={{ my: 1, p: 2 }} elevation={3}>
+        <Paper key={section.section.crn} sx={{ my: 1, p: 2 }} elevation={3}>
             <Stack direction="row" justifyContent="space-between">
                 <Stack>
                     <Stack direction="row" spacing={2} my={1}>
@@ -63,7 +63,7 @@ export default function ScheduleView(ps: {
         <>
             <Stack direction="row" alignItems="center" spacing={2} py={2}>
                 <SearchBar label="Manually Add Courses" initial={search ?? ""} setSearch={setSearch} />
-                <Button variant="contained" size="large"
+                <Button variant="outlined" size="large"
                         sx={{ minWidth: "fit-content", height: "50px", p: 2 }}
                         onClick={() => ps.save(prompt("Name your schedule:") || "Untitled")}
                 >

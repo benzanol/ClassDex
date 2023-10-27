@@ -36,7 +36,7 @@ export default function FilterBrowsePopup(ps: {
         ["ad", "Analyzing Diversity"],
     ].map(([key, label]) => (
         <FormControlLabel
-            label={label}
+            key={key} label={label}
             control = {
                 <Checkbox onChange={e => {
                               const newFilter = { ...ps.filter };

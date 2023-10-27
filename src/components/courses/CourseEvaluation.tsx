@@ -75,8 +75,8 @@ function CourseEvaluationDatapoint(ps: {
 export default function CourseEvaluation(ps: { course: Course }) {
     const evals = Object.entries(getEvals(ps.course.id));
     if (evals.length === 0) return (
-        <Typography variant="h2" fontSize="1.4em" textAlign="center" p={5}>
-            No evaluations found for "{ps.course.name}"
+        <Typography variant="h2" fontSize="1.1em" textAlign="center" p={2} pt={0}>
+            No evaluations found for {ps.course.id}
         </Typography>
     );
 
@@ -96,7 +96,8 @@ export default function CourseEvaluation(ps: { course: Course }) {
         ));
 
         const pfPercent = Math.round(100 * e.pass.responses / (e.pass.responses + e.grade.responses));
-        const gradeLetter = ["A", "B", "C", "D", "F"][Math.round(e.grade.class) - 1];
+        const letterIdx = Math.floor(3 * (e.grade.class-1));
+        const gradeLetter = ["A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+", "D", "F"][letterIdx];
 
         const legendPointStyle = {
             width: "10px",

@@ -20,8 +20,8 @@ export default function SectionTimeLayout(ps: { section: Section }) {
         }
     }
 
-    const timeLayouts = ranges.map(({ start, end, days }) => (
-        <Stack direction="row" alignItems="bottom">
+    const timeLayouts = ranges.map(({ start, end, days }, i) => (
+        <Stack key={i} pt="3px" direction="row" alignItems="bottom">
             {
                 [6,0,1,2,3,4,5].map(day => (
                     <Card key={day}
