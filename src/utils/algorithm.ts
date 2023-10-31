@@ -1,8 +1,18 @@
-import solver from "javascript-lp-solver";
-import { CourseOrder, CoursePreferences, CourseTimeRange, Section } from "../types";
+import { Course, CourseOrder, CoursePreferences, CourseTimeRange, Section } from "../types";
 
 
-// Calculating Overlap
+
+export function timeString(range: CourseTimeRange): string {
+    let hour = range.startHour;
+    let minute = range.startMinute;
+
+    const pm = hour >= 12;
+    if (hour > 12) hour -= 12;
+    if (hour === 0) hour = 12;
+
+    const str = `${hour}`.padStart(2, "0") + ":" + `${minute}`.padStart(2, "0") + (pm ? "PM" : "AM");
+    return ["M","T","W","R","F","S","U"][range.dayOfWeek] + " - " + str;
+}
 
 function doTimesOverlap(t1: CourseTimeRange, t2: CourseTimeRange): boolean {
     if (t1.dayOfWeek !== t2.dayOfWeek) {
@@ -21,12 +31,12 @@ function doTimesOverlap(t1: CourseTimeRange, t2: CourseTimeRange): boolean {
 }
 
 function doSectionsOverlap(s1: Section, s2: Section): boolean {
-    if (s1.section.timeRanges == undefined || s2.section.timeRanges == undefined) {
+    if (!s1.section.timeRanges || !s2.section.timeRanges) {
         return false
     }
-    for (let i = 0; i < s1.section.timeRanges.length; i += 1) {
-        for (let j = i; j < s2.section.timeRanges.length; j += 1) {
-            if (doTimesOverlap(s1.section.timeRanges[i], s2.section.timeRanges[j])) {
+    for (let t1 of s1.section.timeRanges) {
+        for (let t2 of s2.section.timeRanges) {
+            if (doTimesOverlap(t1, t2)) {
                 return true;
             }
         }
@@ -35,118 +45,156 @@ function doSectionsOverlap(s1: Section, s2: Section): boolean {
     return false;
 }
 
-function sectionTimeEquivClasses(sections: Section[]): Section[][] {
-    const equivs: Section[][] = [];
-    function alreadyOverlapped(s1: Section, s2: Section): boolean {
-        return Boolean(equivs.find(equiv => equiv.includes(s1) && equiv.includes(s2)));
+function anySectionsOverlap(decided: Section[], section: Section): boolean {
+    for (let s of decided) {
+        if (doSectionsOverlap(s, section)) return true;
+    }
+    return false;
+}
+
+
+function sectionTimePreference(section: Section, prefs: CoursePreferences): number {
+    if (prefs.time === "late") {
+        return section.section.timeRanges[0].startHour;
+    }
+    if (prefs.time === "early") {
+        return (24 - section.section.timeRanges[0].startHour);
+    }
+    return 0;
+}
+
+
+export function scheduleScore(sections: Section[], prefs: CoursePreferences): number {
+    const hourScore = sections.reduce((acc, sec) => acc + sectionTimePreference(sec, prefs), 0);
+
+    // Generate a list of courses by day
+    const days: { start: number, end: number }[][] = Array.from(new Array(7), () => []);
+    for (let section of sections) {
+        for (let time of section.section.timeRanges) {
+            days[time.dayOfWeek].push({
+                start: time.startHour*60 + time.startMinute,
+                end: time.endHour*60 + time.endMinute,
+            });
+        }
     }
 
-    for (let s1 of sections) {
-        for (let s2 of sections) {
-            if (s1 === s2 || !doSectionsOverlap(s1, s2) || alreadyOverlapped(s1, s2)) continue;
+    // Sort each day chronologically
+    for (let dayArray of days) {
+        dayArray.sort((a, b) => a.start - b.start);
+    }
 
-            const equivClass = [s1, s2];
-            equivs.push(equivClass);
+    // Count the number of gaps in each day
+    let nogapCount = 0;
+    let totalStartMinusEnd = 0;
+    for (let day of days) {
+        let firstClass = day[0];
+        let lastClass = day.pop();
 
-            // Add an equivalence class of all sections that overlap with both s1 and s2
-            for (let s3 of sections) {
-                if (s3 !== s1 && s3 !== s2 && doSectionsOverlap(s1, s3) && doSectionsOverlap(s2, s3)) {
-                    equivClass.push(s3);
-                }
+        if (firstClass && lastClass) {
+            totalStartMinusEnd += lastClass.end - firstClass.start;
+        }
+
+        while (lastClass && day.length) {
+            let curClass = day.pop()!;
+            if (lastClass.start - curClass.end <= 15) nogapCount += 1;
+            lastClass = curClass;
+        }
+    }
+
+    const credits = sections.reduce((acc, { course }) => acc + course.creditHours, 0);
+
+    // TotalStartMinusEnd is on the order of 60*5*5 = 1500
+    return hourScore*3 + credits*3 + nogapCount*2 + (totalStartMinusEnd / 60)/2;
+}
+
+
+export function optimalOptionalCourses(
+    decided: Section[], decidedCredits: number,
+    optional: Course[], prefs: CoursePreferences,
+): [Section[], number] {
+    if (optional.length === 0 || decidedCredits+3 > (prefs.maxCredits ?? 18)) {
+        return [decided, scheduleScore(decided, prefs)];
+    }
+
+    let bestSections = decided;
+    let bestScore = scheduleScore(decided, prefs);
+
+    for (let i = 0; i < optional.length; i++) {
+        const course = optional[i];
+        for (let section of course.fullSections) {
+            if (anySectionsOverlap(decided, section)) continue;
+
+            // No more than one FWIS
+            if (section.course.id.startsWith("FWIS") && decided.find(s => s.course.id.startsWith("FWIS"))) continue;
+
+            const newSections = [...decided, section];
+            const newCredits = decidedCredits + course.creditHours;
+            const [recursiveSections, recursiveScore] = optimalOptionalCourses(
+                newSections, newCredits, optional.slice(i+1), prefs,
+            );
+
+            // Update the best score
+            if (recursiveScore > bestScore) {
+                bestScore = recursiveScore;
+                bestSections = recursiveSections;
             }
         }
     }
 
-    return equivs;
+    return [bestSections, bestScore];
+}
+
+export function optimalSchedule(
+    decided: Section[], decidedCredits: number,
+    required: Course[], optional: Course[],
+    prefs: CoursePreferences,
+): [Section[], number] {
+    console.log("req", required, decided, optional.length, decidedCredits);
+
+    if (required.length === 0) return optimalOptionalCourses(
+        decided, decidedCredits, optional, prefs
+    );
+
+    let bestSections = [];
+    let bestScore = -Infinity;
+
+    for (let section of required[0].fullSections) {
+        if (anySectionsOverlap(decided, section)) continue;
+
+        const newSections = [...decided, section];
+        const newCredits = decidedCredits + required[0].creditHours;
+
+        // This will use required/optional with a thing removed
+        const [recursiveSections, recursiveScore] = optimalSchedule(
+            newSections, newCredits, required.slice(1), optional, prefs
+        );
+
+        // Update the best score
+        if (recursiveScore > bestScore) {
+            bestScore = recursiveScore;
+            bestSections = recursiveSections;
+        }
+    }
+
+    return [bestSections, bestScore];
 }
 
 
-// Calculating times
-
-function calculateOptimalTimes(
-    sections: [Section, number][],
-    minCredits: number, maxCredits: number,
-): Section[] | null {
-    const overlapEquivs = sectionTimeEquivClasses(sections.map(([sec]) => sec));
-
-    // Each section is a variable, which can be either 0 or 1 in the output
-    const sectionVariables = sections.map(([section, happy]) => [
-        section.section.crn,
-        {
-            happy,
-            credits: section.course.creditHours,
-            [section.course.id]: 1,
-            ...Object.fromEntries(overlapEquivs.map((equiv, idx) => (
-                [`overlap${idx}`, equiv.includes(section) ? 1 : 0]
-            ))),
-            ...Object.fromEntries(sections.map(([s], i) => [`section${i}`, s === section ? 1 : 0]))
-        },
-    ]);
-
-    // No overlapping sections
-    const overlapConstraints = overlapEquivs.map((_, i) => [`overlap${i}`, { max: 1 }]);
-
-    // Only 0 or 1 of each section
-    const sectionConstraints = sections.map((_, i) => [`section${i}`, { min: 0, max: 1 }]);
-
-    // No more than 1 section of a course
-    const courseIds = [...new Set(sections.map(([section]) => section.course.id))]
-    const courseConstraints = courseIds.map(cid => [cid, { max: 1 }]);
-
-    const model = {
-        optimize: "happy",
-        opType: "max",
-        constraints: Object.fromEntries([
-            ...overlapConstraints,
-            ...sectionConstraints,
-            ...courseConstraints,
-            ["credits", { min: minCredits, max: maxCredits }],
-        ]),
-        variables: Object.fromEntries(sectionVariables),
-        // Make sure each course variable is an integer
-        ints: Object.fromEntries(sections.map(([section]) => [section.section.crn, 1]))
-    };
-
-    // console.log(model);
-
-    const result = solver.Solve(model);
-    if (!result.feasible) return null;
-
-    return sections.map(([section]) => section)
-        .filter(section => section.section.crn in result);
-}
 
 export function calculateSchedule(
     sections: Section[], order: CourseOrder, prefs: CoursePreferences,
 ): Section[] {
     const optionalIndex = order.indexOf("Optional");
 
-    const sectionPrefs = sections.map(s => (
-        [s, order.indexOf(s.course) < optionalIndex ? 10 : 1] as [Section, number]
-    ));
+    const required = order.slice(0, optionalIndex) as Course[];
+    const optional = order.slice(optionalIndex + 1) as Course[];
 
-    if (prefs.time === "late") {
-        for (let sec of sectionPrefs) {
-            sec[1] += sec[0].section.timeRanges[0].startHour / 3
-        }
-    }
-    if (prefs.time === "early") {
-        for (let sec of sectionPrefs) {
-            sec[1] += (24 - sec[0].section.timeRanges[0].startHour) / 3
-        }
-    }
+    const [requiredCopy, optionalCopy] = [required, optional].map(list => list.map(course => ({
+        creditHours: course.creditHours,
+        fullSections: course.fullSections.filter(s => sections.includes(s)),
+    } as Course)));
 
-    console.log("Min =", prefs.minCredits, "Max =", prefs.maxCredits)
-    console.log(
-        "Your preferences: \n",
-        sectionPrefs.map(([sec, pref]) => (
-            sec.course.id + " " + sec.section.crn + ": " + pref
-        )).join("\n")
-    );
+    console.log(requiredCopy, optionalCopy);
 
-    return calculateOptimalTimes(
-        sectionPrefs,
-        prefs.minCredits ?? 0,
-        prefs.maxCredits ?? 18,
-    ) ?? [];
+    return optimalSchedule([], 0, requiredCopy, optionalCopy, prefs)[0];
 }

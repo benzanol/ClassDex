@@ -25,6 +25,9 @@ export function getAll() {
     // Add full section objects to each course
     const allSections: Section[] = []
     for (let course of allCourses) {
+        // Shorten the name
+        course.shortName = course.name.length <= 50 ? course.name : course.name.substring(0, 47) + "...";
+
         course.fullSections = [];
         course.sections.forEach(section => {
             section.timeRanges.forEach(range => {

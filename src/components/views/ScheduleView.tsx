@@ -42,19 +42,22 @@ export default function ScheduleView(ps: {
         />
     );
 
-    const courseLayouts = sectionChronologicalOrder(ps.results).map(section => (
+    const sectionLayouts = sectionChronologicalOrder(ps.results).map(section => (
         <Paper key={section.section.crn} sx={{ my: 1, p: 2 }} elevation={3}>
             <Stack direction="row" justifyContent="space-between">
                 <Stack>
-                    <Stack direction="row" spacing={2} my={1}>
-                        <Typography variant="overline" sx={{ fontSize: "0.7em" }} >
-                            { section.course.id }
+                    <Stack direction="row" alignItems="center" spacing={2} my={1}>
+                        <Typography variant="overline" sx={{ fontSize: "0.8em" }} >
+                            {section.course.id}
                         </Typography>
-                        <Typography fontSize="1.15em" mb={1.5}>{ section.course.name }</Typography>
+                        <Typography fontSize="1.15em">{section.course.shortName}</Typography>
+                        <Typography variant="overline" sx={{ fontSize: "0.8em" }} >
+                            ({section.course.creditHours} Credits)
+                        </Typography>
                     </Stack>
                     <SectionTimeLayout section={section} />
                 </Stack>
-                { addOrRemoveSectionButton(false, [section], resultsHook) }
+                {addOrRemoveSectionButton(false, [section], resultsHook)}
             </Stack>
         </Paper>
     ));
@@ -70,7 +73,10 @@ export default function ScheduleView(ps: {
                     Save
                 </Button>
             </Stack>
-            <Box> { courseLayouts } </Box>
+            <Box>{sectionLayouts}</Box>
+            <Typography variant="h2" fontSize="1.35em" textAlign="center" pt={2}>
+                Total Credit Hours: {ps.results.reduce((acc, sec) => sec.course.creditHours + acc, 0)}
+            </Typography>
         </>
     )
 }

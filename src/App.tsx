@@ -69,9 +69,12 @@ export default function App() {
 
     const leftColumn = [
         <CurrentView mySections={hook}
-                     generate={(prefs) => setSectionResults(calculateSchedule(
-                         mySections, courseOrder, prefs,
-                     ))}
+                     generate={(prefs) => {
+                         const sections = calculateSchedule(mySections, courseOrder, prefs);
+                         setSectionResults(sections);
+                         if (sections.length === 0) alert("You have a conflict in your required courses");
+                         else setAppState(1);
+                     }}
         />,
         <ScheduleView results={[ ...sectionResults ]} setResults={setSectionResults}
                       save={saveCurrentSchedule}

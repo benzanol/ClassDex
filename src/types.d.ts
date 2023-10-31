@@ -22,6 +22,7 @@ export type CourseSection = {
 export type Course = {
     id: string,
     name: string,
+    shortName: string,
     creditHours: number,
     courseType: string,
     languageOfInstruction: string,

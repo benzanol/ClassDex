@@ -1,5 +1,6 @@
 html {
     position: relative;
+    font-size: 85%;
 }
 
 #root {
@@ -8,7 +9,6 @@ html {
 
     width: 100vw;
     height: 100vh;
-    fontSize: 0.9em;
     /* position: absolute; */
     /* top: 0; */
     /* left: 0; */

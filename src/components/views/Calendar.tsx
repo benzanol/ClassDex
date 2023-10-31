@@ -20,6 +20,7 @@ function hourString(hour: number): string {
 const GRID_COLOR = "#ddd"
 
 export default function Calendar(ps: { sections: Section[] }) {
+    // Calculate the minimum and maximum time to display
     let [minHour, maxHour] = [8, 16];
     for (let section of ps.sections) {
         for (let time of section.section.timeRanges) {
@@ -46,8 +47,8 @@ export default function Calendar(ps: { sections: Section[] }) {
                 end: time.endHour*60 + time.endMinute,
                 text: (
                     <Stack justifyContent="space-between" className="calendar-event-content">
-                        <Typography variant="h1" fontSize="1.3em" mt={1}>
-                            { section.course.name }
+                        <Typography variant="h1" fontSize="1.15em" mt={1}>
+                            {section.course.shortName}
                         </Typography>
                         <Typography variant="h2" fontSize="1.0em" textAlign="right">{
                             timeString(time.startHour, time.startMinute) + " - "
@@ -71,7 +72,7 @@ export default function Calendar(ps: { sections: Section[] }) {
             <Box position="relative">
                 <Box position="absolute" left="-20px" height="1px" width="100vw" bgcolor={GRID_COLOR} />
                 <Typography variant="overline" color="gray" position="relative">
-                    { hourString(minHour+i) }
+                    {hourString(minHour+i)}
                 </Typography>
             </Box>
         ),
@@ -84,9 +85,9 @@ export default function Calendar(ps: { sections: Section[] }) {
             prevMinute = end-minMinute;
             return (
                 <Fragment key={Math.random()}>
-                    <Box height={ percentHeight(vertSpace, totalMinutes) } />,
+                    <Box height={percentHeight(vertSpace, totalMinutes)} />
                     <Box zIndex={1} width="95%" height={percentHeight(end-start, totalMinutes)}>
-                        { text }
+                        {text}
                     </Box>
                 </Fragment>
             );
@@ -96,13 +97,13 @@ export default function Calendar(ps: { sections: Section[] }) {
             <Grid key={dayIdx} item xs={dayIdx ? 3 : 0} p={0} pt={2}>
                 <Stack key={dayIdx} alignItems="center" height="100%" borderRight={`1px solid ${GRID_COLOR}`}>
                     <Typography variant="h2" fontSize="1.2em">
-                        { ["\u{2064}","Mon","Tue","Wed","Thu","Fri","Sat","Sun"][dayIdx] }
+                        {["\u{2064}","Mon","Tue","Wed","Thu","Fri","Sat","Sun"][dayIdx]}
                     </Typography>
-                    { events }
+                    {events}
                 </Stack>
             </Grid>
         );
     });
 
-    return <Grid container spacing={0} wrap="nowrap" height="98%" width="98%">{ dayLayouts }</Grid>
+    return <Grid container spacing={0} wrap="nowrap" height="98%" width="98%">{dayLayouts}</Grid>
 }
