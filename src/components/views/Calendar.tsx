@@ -47,9 +47,11 @@ export default function Calendar(ps: { sections: Section[] }) {
                 end: time.endHour*60 + time.endMinute,
                 text: (
                     <Stack justifyContent="space-between" className="calendar-event-content">
-                        <Typography variant="h1" fontSize="1.15em" mt={1}>
-                            {section.course.shortName}
-                        </Typography>
+                        <Box sx={{ overflow: "auto" }}>
+                            <Typography variant="h1" fontSize="1.15em" mt={1} sx={{ overflow: "hidden" }}>
+                                {section.course.shortName}
+                            </Typography>
+                        </Box>
                         <Typography variant="h2" fontSize="1.0em" textAlign="right">{
                             timeString(time.startHour, time.startMinute) + " - "
                                 + timeString(time.endHour, time.endMinute)

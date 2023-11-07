@@ -93,7 +93,7 @@ export default function App() {
 
             <Resizer.Section style={{ height: "100%" }} minSize={600} defaultSize={800}>
                 <Stack justifyContent="space-between" height="100%">
-                    <Box sx={{ pb: 2, px: 2, height: "100%", overflowY: "scroll" }}>{ leftColumn }</Box>
+                    <Box sx={{ pb: 2, px: 2, height: "100%", overflowY: "auto" }}>{ leftColumn }</Box>
                     <Tabs variant="fullWidth" value={appState} onChange={(_, val) => setAppState(val)}>
                         <Tab icon={<SchoolIcon />} label="Desired Courses" />
                         <Tab icon={<CalendarMonthIcon />} label="View Schedule" />

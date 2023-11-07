@@ -97,7 +97,7 @@ export default function CourseEvaluation(ps: { course: Course }) {
 
         const pfPercent = Math.round(100 * e.pass.responses / (e.pass.responses + e.grade.responses));
         const letterIdx = Math.floor(3 * (e.grade.class-1));
-        const gradeLetter = ["A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+", "D", "F"][letterIdx];
+        const gradeLetter = ["A", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+", "D", "F"][letterIdx];
 
         const legendPointStyle = {
             width: "10px",

@@ -47,11 +47,11 @@ export default function ScheduleView(ps: {
             <Stack direction="row" justifyContent="space-between">
                 <Stack>
                     <Stack direction="row" alignItems="center" spacing={2} my={1}>
-                        <Typography variant="overline" sx={{ fontSize: "0.8em" }} >
+                        <Typography variant="overline" sx={{ fontSize: "0.8em", whiteSpace: "nowrap" }} >
                             {section.course.id}
                         </Typography>
                         <Typography fontSize="1.15em">{section.course.shortName}</Typography>
-                        <Typography variant="overline" sx={{ fontSize: "0.8em" }} >
+                        <Typography variant="overline" sx={{ fontSize: "0.8em", whiteSpace: "nowrap" }} >
                             ({section.course.creditHours} Credits)
                         </Typography>
                     </Stack>

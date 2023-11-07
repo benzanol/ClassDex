@@ -5,7 +5,7 @@ import { useState } from "react";
 import { ALL } from "../../App";
 import { CurrentSectionData, Course } from "../../types";
 import CourseList from "../courses/CourseList";
-import FilterBrowsePopup, { satisfiesFilter } from "./FilterBrowsePopup";
+import FilterBrowsePopup, { satisfiesFilter, sortCourses } from "./FilterBrowsePopup";
 import SearchBar from "./SearchBar";
 
 
@@ -36,6 +36,7 @@ export default function BrowseView(ps: {
     const filteredCourses = ALL.courses.filter(course => (
         matchesSearch(ps.search, course) && satisfiesFilter(course, filter)
     ));
+    const sortedCourses = sortCourses(filteredCourses, filter);
 
     return (
         <>
@@ -60,8 +61,8 @@ export default function BrowseView(ps: {
 
             <Stack alignItems="center" pb={4}>
                 {
-                    filteredCourses.length ? (
-                        <CourseList courses={filteredCourses} mySections={ps.mySections} />
+                    sortedCourses.length ? (
+                        <CourseList courses={sortedCourses} mySections={ps.mySections} />
                     ) : (
                         <Typography variant="h2" fontSize="1.3em" mt={2}>No matches found</Typography>
                     )

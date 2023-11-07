@@ -104,7 +104,7 @@ export function scheduleScore(sections: Section[], prefs: CoursePreferences): nu
     const credits = sections.reduce((acc, { course }) => acc + course.creditHours, 0);
 
     // TotalStartMinusEnd is on the order of 60*5*5 = 1500
-    return hourScore*3 + credits*3 + nogapCount*2 + (totalStartMinusEnd / 60)/2;
+    return hourScore*2 + credits*2 + nogapCount*2 - (totalStartMinusEnd / 60);
 }
 
 
@@ -112,9 +112,7 @@ export function optimalOptionalCourses(
     decided: Section[], decidedCredits: number,
     optional: Course[], prefs: CoursePreferences,
 ): [Section[], number] {
-    if (optional.length === 0 || decidedCredits+3 > (prefs.maxCredits ?? 18)) {
-        return [decided, scheduleScore(decided, prefs)];
-    }
+    if (optional.length === 0) return [decided, scheduleScore(decided, prefs)];
 
     let bestSections = decided;
     let bestScore = scheduleScore(decided, prefs);
@@ -122,10 +120,14 @@ export function optimalOptionalCourses(
     for (let i = 0; i < optional.length; i++) {
         const course = optional[i];
         for (let section of course.fullSections) {
-            if (anySectionsOverlap(decided, section)) continue;
+            if (
+                anySectionsOverlap(decided, section)
+                    || decidedCredits+section.course.creditHours > (prefs.maxCredits ?? 18)
+            ) continue;
 
             // No more than one FWIS
             if (section.course.id.startsWith("FWIS") && decided.find(s => s.course.id.startsWith("FWIS"))) continue;
+            if (section.course.id.startsWith("LPAP") && decided.find(s => s.course.id.startsWith("LPAP"))) continue;
 
             const newSections = [...decided, section];
             const newCredits = decidedCredits + course.creditHours;
