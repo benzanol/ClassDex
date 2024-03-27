@@ -64,15 +64,6 @@ export default function ScheduleView(ps: {
 
     return (
         <>
-            <Stack direction="row" alignItems="center" spacing={2} py={2}>
-                <SearchBar label="Manually Add Courses" initial={search ?? ""} setSearch={setSearch} />
-                <Button variant="outlined" size="large"
-                        sx={{ minWidth: "fit-content", height: "50px", p: 2 }}
-                        onClick={() => ps.save(prompt("Name your schedule:") || "Untitled")}
-                >
-                    Save
-                </Button>
-            </Stack>
             <Box>{sectionLayouts}</Box>
             <Typography variant="h2" fontSize="1.35em" textAlign="center" pt={2}>
                 Total Credit Hours: {ps.results.reduce((acc, sec) => sec.course.creditHours + acc, 0)}

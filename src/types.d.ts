@@ -30,7 +30,7 @@ export type Course = {
     gradingMode?: string,
     prerequisites: string,
     description: string,
-    satisfiesDistribution?: string,
+    distributionGroup?: string,
     methodOfInstruction: string,
     finalExam: string,
     gradeMode: string,

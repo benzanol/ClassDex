@@ -1,7 +1,6 @@
 import { Card, Typography } from "@mui/material";
 import { Stack } from "@mui/system";
-import { CurrentSectionData, Section, SectionSession } from "../../types"
-import { timeString } from "../../utils/timeString";
+import { CurrentSectionData, Section } from "../../types"
 import { addOrRemoveSectionButton } from "./CourseHeaderLayout";
 import SectionTimeLayout from "./SectionTimeLayout";
 

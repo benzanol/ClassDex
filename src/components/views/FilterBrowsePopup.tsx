@@ -37,11 +37,11 @@ export function sortCourses(courses: Course[], filter: CourseFilter): Course[] {
 export function satisfiesFilter(course: Course, filter: CourseFilter): boolean {
     if (filter.credits !== undefined && course.creditHours !== filter.credits) return false;
 
-    if (filter.d1 && course.satisfiesDistribution !== `Distribution Group I`) {
+    if (filter.d1 && course.distributionGroup !== `Distribution Group I`) {
         return false;
-    } else if (filter.d2 && course.satisfiesDistribution !== `Distribution Group II`) {
+    } else if (filter.d2 && course.distributionGroup !== `Distribution Group II`) {
         return false;
-    } else if (filter.d3 && course.satisfiesDistribution !== `Distribution Group III`) {
+    } else if (filter.d3 && course.distributionGroup !== `Distribution Group III`) {
         return false;
     } else if (filter.ad && !course.analyzingDiversity) {
         return false;

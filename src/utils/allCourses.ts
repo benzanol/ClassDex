@@ -1,6 +1,5 @@
+import { COURSE_DATA } from "../App";
 import { Course, Section } from "../types";
-import courses from "./courseData";
-
 
 export function sectionChronologicalOrder(sections: Section[]): Section[] {
     return sections
@@ -12,7 +11,7 @@ export function sectionChronologicalOrder(sections: Section[]): Section[] {
 }
 
 export function getAll() {
-    let allCourses = (courses as Course[]).filter(c => c.sections?.length);
+    let allCourses = COURSE_DATA.filter(c => c.sections?.length);
 
     // Remove sections that don't have a time
     for (let c of allCourses) {

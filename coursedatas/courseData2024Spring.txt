@@ -14,7 +14,7 @@ const COURSES: Course[] = (
     "creditHours" : 3,
     "methodOfInstruction" : "Face to Face",
     "gradeMode" : "Standard Letter",
-    "sessions" : [
+    "sections" : [
       {
         "location" : "Unknown",
         "id" : "001",

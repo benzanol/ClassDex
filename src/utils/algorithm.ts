@@ -65,6 +65,8 @@ function sectionTimePreference(section: Section, prefs: CoursePreferences): numb
 
 
 export function scheduleScore(sections: Section[], prefs: CoursePreferences): number {
+    if (sections.length === 0) return -Infinity;
+
     const hourScore = sections.reduce((acc, sec) => acc + sectionTimePreference(sec, prefs), 0);
 
     // Generate a list of courses by day
@@ -104,7 +106,7 @@ export function scheduleScore(sections: Section[], prefs: CoursePreferences): nu
     const credits = sections.reduce((acc, { course }) => acc + course.creditHours, 0);
 
     // TotalStartMinusEnd is on the order of 60*5*5 = 1500
-    return hourScore*2 + credits*2 + nogapCount*2 - (totalStartMinusEnd / 60);
+    return hourScore*2 + credits*10 + nogapCount*2 - (totalStartMinusEnd / 60);
 }
 
 

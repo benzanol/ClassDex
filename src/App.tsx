@@ -2,11 +2,13 @@ import './App.css'
 import './styles/calendar.css'
 import './styles/grabber.css'
 
+import coursesJson from "./assets/courses.json";
+
 import { useEffect, useState } from 'react';
 import { Box, Stack, Tabs, Tab } from '@mui/material/index'
 import * as Resizer from '@column-resizer/react';
 import Calendar from './components/views/Calendar';
-import { Section } from './types';
+import { Course, Section } from './types';
 import { getAll } from './utils/allCourses';
 import { getLocalStorage, saveCourseOrder, saveSavedSchedules, saveSections } from './utils/localStorage';
 import CurrentView from './components/views/CurrentView';
@@ -20,6 +22,7 @@ import ScheduleView from './components/views/ScheduleView';
 import SavedView from './components/views/SavedView';
 
 
+export const COURSE_DATA = coursesJson as Course[];
 export const ALL = getAll();
 const INITIAL = getLocalStorage(ALL.courses, ALL.sections);
 

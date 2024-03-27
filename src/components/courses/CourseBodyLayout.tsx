@@ -15,7 +15,7 @@ function gridItem(image: string, alt: string, text: string) {
             <Stack direction="row" alignItems="center">
                 <img alt={alt} src={image} style={{ width: "20px" }} />
                 <Typography sx={{ ml: 2, fontSize: "1.3em" }}>{ text }</Typography>
-        </Stack>
+            </Stack>
         </TableCell>
     );
 }
@@ -36,7 +36,7 @@ export default function CourseBodyLayout(ps: {
                     <TableRow>
                         { gridItem(
                             worldImage, "Distribution",
-                            ps.course.satisfiesDistribution ?? "No Distribution Credit"
+                            ps.course.distributionGroup ?? "No Distribution Credit"
                         ) }
                         { gridItem(aImage, "A", ps.course.gradeMode) }
                     </TableRow>
@@ -48,6 +48,14 @@ export default function CourseBodyLayout(ps: {
                                          section={section}
                                          mySections={ps.mySections} />
                 ))
+            }
+            {
+                ps.course.prerequisites && (
+                    <Stack direction="row" alignItems="center" mb="0">
+                        <Typography my={2} variant="h2" mb="0" fontSize="1.2em" pr="4px">Prerequisities: </Typography>
+                        <Typography my={2} variant="h2" mb="0" fontSize="1em">{ ps.course.prerequisites }</Typography>
+                    </Stack>
+                )
             }
             <Typography my={2}>{ ps.course.description }</Typography>
             <CourseEvaluation course={ps.course} />
